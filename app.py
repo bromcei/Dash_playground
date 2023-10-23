@@ -64,9 +64,18 @@ def render_content(tab):
 
 # Page 1 ---------------------------------------------------------------------------------------------------------------
 @app.callback(Output('box-graph', 'figure'),
-            [Input("x-axis", "value")])
-def box_plot_by_cat(x):
-    return data_obj.box_plot(x)
+            [
+                Input("x-axis", "value"),
+                Input("year-range", "value"),
+                Input("make-dropdown", "value"),
+                Input("model-dropdown", "value"),
+                Input("transmission-dropdown", "value"),
+                Input("fuel-dropdown", "value"),
+                Input("color-dropdown", "value")
+             ])
+def box_plot_by_cat(x, year, make, model, transmission, fuel, color):
+    print(year, make, model, transmission, fuel, color)
+    return data_obj.box_plot(x, year, make, model, transmission, fuel, color)
 
 # @app.callback(Output('parsed-data', 'figure'),
 #               Input('interval-parsed-data', 'n_intervals'))

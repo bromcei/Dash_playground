@@ -12,6 +12,7 @@ def page_1_layout():
                 max=2023,
                 step=1,
                 value=[1970, 2023],
+                marks={i: str(i) for i in range(1970, 2023, 2)},
                 id='year-range')
         ], style={"width": "100%"}),
         html.Div([
@@ -19,7 +20,7 @@ def page_1_layout():
                 html.P("Make"),
                 dcc.Dropdown(
                     DataProcessor().get_col_unique_values("make"),
-                    None,
+                    [],
                     multi=True,
                     id='make-dropdown')
             ], style={"width": "20%"}),
@@ -27,7 +28,7 @@ def page_1_layout():
                 html.P("Model"),
                 dcc.Dropdown(
                     DataProcessor().get_col_unique_values("model"),
-                    None,
+                    [],
                     multi=True,
                     id='model-dropdown')
             ], style={"width": "20%"}),
@@ -35,7 +36,7 @@ def page_1_layout():
                 html.P("Transmission"),
                 dcc.Dropdown(
                     DataProcessor().get_col_unique_values("transmission"),
-                    None,
+                    [],
                     multi=True,
                     id='transmission-dropdown')
             ], style={"width": "20%"}),
@@ -43,7 +44,7 @@ def page_1_layout():
                 html.P("Fuel"),
                 dcc.Dropdown(
                     DataProcessor().get_col_unique_values("fuel"),
-                    None,
+                    [],
                     multi=True,
                     id='fuel-dropdown')
             ], style={"width": "20%"}),
@@ -51,7 +52,7 @@ def page_1_layout():
                 html.P("Color"),
                 dcc.Dropdown(
                     DataProcessor().get_col_unique_values("color"),
-                    None,
+                    [],
                     multi=True,
                     id='color-dropdown')
             ], style={"width": "20%"})
@@ -61,8 +62,8 @@ def page_1_layout():
         html.H1('Box Plots by Selected Category'),
         dcc.RadioItems(
             id='x-axis',
-            options=DataProcessor().get_columns(exlude=["price", "year", "make", "model"]),
-            value=DataProcessor().get_columns(exlude=["price", "year", "make", "model"])[1],
+            options=DataProcessor().get_columns(exlude=["price", "year"]),
+            value=DataProcessor().get_columns(exlude=["price", "year"])[1],
             inline=True
         ),
         dcc.Graph(id="box-graph"),

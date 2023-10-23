@@ -13,6 +13,12 @@ class DataProcessor():
         self.url = 'https://drive.google.com/uc?id=' + self.url.split('/')[-2]
         self.df_org = pd.read_csv(r"Data/carvertical.csv", index_col=[0], sep=";")
         self.df = self.df_org.drop_duplicates(keep="first")
+        print(self.df.info)
+        self.makes = self.df["make"].unique()
+        self.models = self.df["model"].unique()
+        self.trans = self.df["transmission"].unique()
+        self.fuels = self.df["fuel"].unique()
+        self.colors = self.df["color"].unique()
 
     def return_nulls_col(self, column):
         null_cols = [col for col in self.df.columns if col != column]
@@ -30,14 +36,34 @@ class DataProcessor():
     def get_col_unique_values(self, col):
         return self.df[col].sort_values().unique().tolist()
 
-    def box_plot(self, col_x):
-        fig = px.box(self.df.sort_values(col_x), x=col_x, y="price", log_y=True, template="plotly_white")
-        if col_x == "make":
-            fig.update_layout(width=3000)
-        if col_x == "model":
-            fig.update_layout(width=12000)
-        else:
-            fig.update_layout(width=None)
+    def box_plot(self, col_x, year, make, model, transmission, fuel, color):
+        print(type(year[0]))
+        if len(make) == 0:
+            make = self.makes
+        if len(model) == 0:
+            model = self.models
+        if len(transmission) == 0:
+            transmission = self.trans
+        if len(fuel) == 0:
+            fuel = self.fuels
+        if len(color) == 0:
+            color = self.colors
+        df_graph = self.df[
+            (self.df["year"] >= year[0]) &
+            (self.df["year"] <= year[1]) &
+            (self.df["make"].isin(make)) &
+            (self.df["model"].isin(model)) &
+            (self.df["transmission"].isin(transmission)) &
+            (self.df["fuel"].isin(fuel)) &
+            (self.df["color"].isin(color))
+            ]
+        fig = px.box(df_graph.sort_values(col_x), x=col_x, y="price", log_y=True, template="plotly_white")
+        # if col_x == "make":
+        #     fig.update_layout(width=3000)
+        # if col_x == "model":
+        #     fig.update_layout(width=12000)
+        # else:
+        #     fig.update_layout(width=None)
         return fig
 
     def line_plot(self):
