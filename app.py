@@ -2,8 +2,9 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 import graphs
 from Services.data_src import DataProcessor
-from Pages.page_1 import page_1_layout
+from Pages.page_1 import Overview_layout
 from Pages.page_2 import page_2_layout
+import assets.tab_styles_config as tsc
 
 app = Dash(__name__, suppress_callback_exceptions=True)
 app.title = 'CarVertical Homework'
@@ -15,32 +16,15 @@ data_obj = DataProcessor()
 PAGE_SIZE = 10
 n_days = 90
 
-tabs_styles = {
-    'height': '44px'
-}
-tab_style = {
-    'borderBottom': '1px solid #d6d6d6',
-    'padding': '6px',
-    'fontWeight': 'bold',
-    'color': 'black',
-    'backgroundColor': '#EEEEEE',
-}
 
-tab_selected_style = {
-    'borderTop': '1px solid #d6d6d6',
-    'borderBottom': '1px solid #d6d6d6',
-    'backgroundColor': '#106669',
-    'color': 'white',
-    'padding': '6px'
-}
 
 app.layout = html.Div([
     dcc.Tabs(id="tabs-styled-with-inline", value='tab-1', children=[
-        dcc.Tab(label='Data Quality and Data Visualization', value='tab-1', style=tab_style, selected_style=tab_selected_style),
-        dcc.Tab(label='Hypothesis Testing', value='tab-2', style=tab_style, selected_style=tab_selected_style),
-        dcc.Tab(label='ML ', value='tab-3', style=tab_style, selected_style=tab_selected_style),
-        dcc.Tab(label='Tab 4', value='tab-4', style=tab_style, selected_style=tab_selected_style),
-    ], style=tabs_styles),
+        dcc.Tab(label='Data Quality', value='tab-1', style=tsc.tab_style, selected_style=tsc.tab_selected_style),
+        dcc.Tab(label='Data Overview', value='tab-2', style=tsc.tab_style, selected_style=tsc.tab_selected_style),
+        dcc.Tab(label='Hypothesis Testing', value='tab-3', style=tsc.tab_style, selected_style=tsc.tab_selected_style),
+        dcc.Tab(label='ML', value='tab-4', style=tsc.tab_style, selected_style=tsc.tab_selected_style),
+    ], style=tsc.tabs_styles),
     html.Div(id='tabs-content-inline')
 ])
 
@@ -49,10 +33,10 @@ app.layout = html.Div([
               Input('tabs-styled-with-inline', 'value'))
 def render_content(tab):
     if tab == 'tab-1':
-        return page_1_layout()
+        return page_2_layout()
 
     if tab == 'tab-2':
-        return page_2_layout()
+        return Overview_layout()
 
 
     elif tab == 'tab-3':
@@ -62,7 +46,18 @@ def render_content(tab):
         return 0
 
 
-# Page 1 ---------------------------------------------------------------------------------------------------------------
+# Page 2 ---------------------------------------------------------------------------------------------------------------
+@app.callback(Output('bar-line-graph', 'figure'),
+            [
+                Input("year-range", "value"),
+                Input("make-dropdown", "value"),
+                Input("model-dropdown", "value"),
+                Input("transmission-dropdown", "value"),
+                Input("fuel-dropdown", "value"),
+                Input("color-dropdown", "value")
+             ])
+def line_bar_chart(year, make, model, transmission, fuel, color):
+    return data_obj.bar_line_chart_ov(year, make, model, transmission, fuel, color)
 @app.callback(Output('box-graph', 'figure'),
             [
                 Input("x-axis", "value"),
@@ -74,8 +69,9 @@ def render_content(tab):
                 Input("color-dropdown", "value")
              ])
 def box_plot_by_cat(x, year, make, model, transmission, fuel, color):
-    print(year, make, model, transmission, fuel, color)
-    return data_obj.box_plot(x, year, make, model, transmission, fuel, color)
+    return data_obj.box_plot_ov(x, year, make, model, transmission, fuel, color)
+
+
 
 # @app.callback(Output('parsed-data', 'figure'),
 #               Input('interval-parsed-data', 'n_intervals'))

@@ -33,10 +33,15 @@ class DataProcessor():
         else:
             return [col for col in self.df.columns if col not in exlude]
 
+    def get_year_range(self):
+        year_min = np.min(self.df["year"])
+        year_max = np.max(self.df["year"])
+        return [int(year_min), int(year_max)]
+
     def get_col_unique_values(self, col):
         return self.df[col].sort_values().unique().tolist()
 
-    def box_plot(self, col_x, year, make, model, transmission, fuel, color):
+    def box_plot_ov(self, col_x, year, make, model, transmission, fuel, color):
         print(type(year[0]))
         if len(make) == 0:
             make = self.makes
@@ -65,6 +70,50 @@ class DataProcessor():
         # else:
         #     fig.update_layout(width=None)
         return fig
+
+    def bar_line_chart_ov(self, year, make, model, transmission, fuel, color):
+        if len(make) == 0:
+            make = self.makes
+        if len(model) == 0:
+            model = self.models
+        if len(transmission) == 0:
+            transmission = self.trans
+        if len(fuel) == 0:
+            fuel = self.fuels
+        if len(color) == 0:
+            color = self.colors
+        df_graph = self.df[
+            (self.df["year"] >= year[0]) &
+            (self.df["year"] <= year[1]) &
+            (self.df["make"].isin(make)) &
+            (self.df["model"].isin(model)) &
+            (self.df["transmission"].isin(transmission)) &
+            (self.df["fuel"].isin(fuel)) &
+            (self.df["color"].isin(color))
+            ]
+
+        df_graph = df_graph.groupby("year").agg(
+            {"price": ["mean"], "make": ["count"], "model": [lambda x: x.nunique()]}).reset_index().droplevel(1, axis=1)
+
+        fig = px.line(x=df_graph["year"], y=df_graph["price"], color=px.Constant("Average Price"),
+                      labels=dict(x="year", y="Average Price"), template="plotly_white")
+
+        fig.update_layout(
+            yaxis2=dict(
+                title="Vehicle Count",
+                # overlaying='y',
+                side='right'
+            ),
+            yaxis1 = dict(
+                title="Average Price",
+                overlaying='y2',
+                side='left'
+            )
+        )
+        fig.add_bar(x=df_graph["year"], y=df_graph["make"], name="Vehicle Count", yaxis="y2")
+        # fig.update_layout(traceorder="reversed")
+        return fig
+
 
     def line_plot(self):
         pass
