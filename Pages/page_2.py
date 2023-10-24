@@ -1,80 +1,20 @@
-from dash import dcc, html, dash_table
+from dash import dcc, html
+from Services.data_src import DataProcessor
+from Pages.Filters.topline_filters import top_line_filter
 
-
-# import plotly.graph_objects as go
-# from plotly.subplots import make_subplots
-# import pandas as pd
-# from datetime import date, datetime, timedelta
-
-
-def page_2_layout():
+def Overview_layout(data_obj):
     return html.Div([
-            # Set the new white-text image
-            html.H1('Telemetry Production Server'),
-            html.Div(
-                className='sidenav',
-                children=[
-                    html.Div(
-                        className='dropdown',
-                        children=[
-                            html.P("Patient Group"),
-                            dcc.Dropdown(
-                                ['NYC', 'MTL', 'SF'],
-                                'NYC',
-                                id='demo-dropdown',
-                                multi=True,
-                                clearable=False
-                            )
-                        ]
-                    ),
-                    html.Div(
-                        className='dropdown',
-                        children=[
-                            html.P("Metric Name"),
-                            dcc.Dropdown(
-                                ['NYC', 'MTL', 'SF'],
-                                'NYC',
-                                id='demo-dropdown',
-                                multi=True,
-                                clearable=False
-                            )
-                        ]
-                    ),
-                    html.Div(
-                        className='dropdown',
-                        children=[
-                            html.P("Patients"),
-                            dcc.Dropdown(
-                                ['NYC', 'MTL', 'SF'],
-                                'NYC',
-                                id='demo-dropdown',
-                                multi=True,
-                                clearable=False
-                            )
-                        ]
-                    )
-            ]),
-            html.Div(
-                className='main',
-                children = [
-                html.P('Mainas')
-            ]
-            ),
+        top_line_filter(data_obj),
+        html.H1('Average Vehicle Price and Vehicle Count over the Years '),
+        dcc.Graph(id="bar-line-graph"),
 
-    ])
-            # html.Div([
-            #     "Select patient_id:",
-            #     dcc.Dropdown(
-            #         id='patient-id-opt-dropdown',
-            #         searchable=True
-            #     ),
-            # ], style={'width': '20%', 'display': 'inline-block'}
-            # ),
-            # html.Div([
-            #     "Select user_id:",
-            #     dcc.Dropdown(
-            #         id='user-id-opt-dropdown',
-            #         searchable=True
-            #     ),
-            # ], style={'width': '20%', 'display': 'inline-block'}
-            # ),
+        html.H1('Box Plots by Selected Category'),
+        dcc.RadioItems(
+            id='x-axis',
+            options=data_obj.get_columns(exlude=["price", "year"]),
+            value=data_obj.get_columns(exlude=["price", "year"])[1],
+            inline=True
+        ),
+        dcc.Graph(id="box-graph"),
+
+    ], style={'overflowX': 'scroll', 'width': "100%"})

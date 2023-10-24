@@ -1,10 +1,11 @@
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
-import graphs
+from Pages.Nav.top_nav import top_nav
 from Services.data_src import DataProcessor
-from Pages.page_1 import Overview_layout
-from Pages.page_2 import page_2_layout
-import assets.tab_styles_config as tsc
+from Pages.page_2 import Overview_layout
+from Pages.page_3 import HypothesisPage
+from Pages.page_4 import page_2_layout
+
 
 app = Dash(__name__, suppress_callback_exceptions=True)
 app.title = 'CarVertical Homework'
@@ -16,18 +17,7 @@ data_obj = DataProcessor()
 PAGE_SIZE = 10
 n_days = 90
 
-
-
-app.layout = html.Div([
-    dcc.Tabs(id="tabs-styled-with-inline", value='tab-1', children=[
-        dcc.Tab(label='Data Quality', value='tab-1', style=tsc.tab_style, selected_style=tsc.tab_selected_style),
-        dcc.Tab(label='Data Overview', value='tab-2', style=tsc.tab_style, selected_style=tsc.tab_selected_style),
-        dcc.Tab(label='Hypothesis Testing', value='tab-3', style=tsc.tab_style, selected_style=tsc.tab_selected_style),
-        dcc.Tab(label='ML', value='tab-4', style=tsc.tab_style, selected_style=tsc.tab_selected_style),
-    ], style=tsc.tabs_styles),
-    html.Div(id='tabs-content-inline')
-])
-
+app.layout = top_nav
 
 @app.callback(Output('tabs-content-inline', 'children'),
               Input('tabs-styled-with-inline', 'value'))
@@ -36,11 +26,11 @@ def render_content(tab):
         return page_2_layout()
 
     if tab == 'tab-2':
-        return Overview_layout()
+        return Overview_layout(data_obj)
 
 
     elif tab == 'tab-3':
-        return 0
+        return HypothesisPage(data_obj)
 
     elif tab == 'tab-4':
         return 0
@@ -70,6 +60,38 @@ def line_bar_chart(year, make, model, transmission, fuel, color):
              ])
 def box_plot_by_cat(x, year, make, model, transmission, fuel, color):
     return data_obj.box_plot_ov(x, year, make, model, transmission, fuel, color)
+
+# Page 3 ---------------------------------------------------------------------------------------------
+@app.callback(
+    Output('first-subset-dropdown', 'options'),
+            [
+                Input("categorical-test-dropdown", "value"),
+            ])
+def first_subset_values(value):
+    return data_obj.get_col_unique_values(value)
+
+@app.callback(Output('second-subset-dropdown', 'options'),
+            [
+                Input("categorical-test-dropdown", "value"),
+             ])
+def second_subset_values(value):
+    return data_obj.get_col_unique_values(value)
+
+@app.callback(Output('histogram-graph', 'figure'),
+            [
+                Input("year-range", "value"),
+                Input("make-dropdown", "value"),
+                Input("model-dropdown", "value"),
+                Input("transmission-dropdown", "value"),
+                Input("fuel-dropdown", "value"),
+                Input("color-dropdown", "value"),
+                Input("quantile-range", "value"),
+                Input("categorical-test-dropdown", "value"),
+                Input("first-subset-dropdown", "value"),
+                Input("second-subset-dropdown", "value"),
+             ])
+def hist_chart(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2):
+    return data_obj.hist_plot(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2)
 
 
 

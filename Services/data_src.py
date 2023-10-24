@@ -12,8 +12,8 @@ class DataProcessor():
         self.url = 'https://drive.google.com/file/d/1TDSVowlbRnB6rs9mEd7jLaVjFYvhRvIN/view?usp=sharing'
         self.url = 'https://drive.google.com/uc?id=' + self.url.split('/')[-2]
         self.df_org = pd.read_csv(r"Data/carvertical.csv", index_col=[0], sep=";")
-        self.df = self.df_org.drop_duplicates(keep="first")
-        print(self.df.info)
+        self.df = self.df_org.drop_duplicates(keep="first").copy()
+        self.df_analysis = self.df.dropna().copy()
         self.makes = self.df["make"].unique()
         self.models = self.df["model"].unique()
         self.trans = self.df["transmission"].unique()
@@ -63,6 +63,33 @@ class DataProcessor():
             ].copy()
         return df_filtered
 
+    def apply_filter_with_q(self, q_low, q_high, year, make, model, transmission, fuel, color):
+        if len(make) == 0:
+            make = self.makes
+        if len(model) == 0:
+            model = self.models
+        if len(transmission) == 0:
+            transmission = self.trans
+        if len(fuel) == 0:
+            fuel = self.fuels
+        if len(color) == 0:
+            color = self.colors
+
+        q_lower = self.df_analysis["price"].quantile(q_low)
+        q_higher = self.df_analysis["price"].quantile(q_high)
+        df_filtered = self.df_analysis[
+            (self.df_analysis["price"] >= q_lower) &
+            (self.df_analysis["price"] <= q_higher) &
+            (self.df_analysis["year"] >= year[0]) &
+            (self.df_analysis["year"] <= year[1]) &
+            (self.df_analysis["make"].isin(make)) &
+            (self.df_analysis["model"].isin(model)) &
+            (self.df_analysis["transmission"].isin(transmission)) &
+            (self.df_analysis["fuel"].isin(fuel)) &
+            (self.df_analysis["color"].isin(color))
+            ].copy()
+        return df_filtered
+
     def box_plot_ov(self, col_x, year, make, model, transmission, fuel, color):
         df_graph = self.apply_filter(year, make, model, transmission, fuel, color)
         fig = px.box(df_graph.sort_values(col_x), x=col_x, y="price", log_y=True, template="plotly_white")
@@ -97,6 +124,17 @@ class DataProcessor():
         return fig
 
 
-    def line_plot(self):
-        pass
+    def hist_plot(self, year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2):
+        df_filtered = self.apply_filter_with_q(quantile_range[0], quantile_range[1], year, make, model, transmission,
+                                               fuel, color)
+
+        cat_1_prices = df_filtered[df_filtered[category_name] == category_value_1]["price"].to_numpy()
+        cat_2_prices = df_filtered[df_filtered[category_name] == category_value_2]["price"].to_numpy()
+
+        df_hist = pd.DataFrame(dict(
+            series=np.concatenate(([category_value_1] * len(cat_1_prices), [category_value_2] * len(cat_2_prices))),
+            data=np.concatenate((cat_1_prices, cat_2_prices))
+        ))
+        fig = px.histogram(df_hist, x="data", color="series", barmode="overlay", nbins=20)
+        return fig
 
