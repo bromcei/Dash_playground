@@ -41,8 +41,7 @@ class DataProcessor():
     def get_col_unique_values(self, col):
         return self.df[col].sort_values().unique().tolist()
 
-    def box_plot_ov(self, col_x, year, make, model, transmission, fuel, color):
-        print(type(year[0]))
+    def apply_filter(self, year, make, model, transmission, fuel, color):
         if len(make) == 0:
             make = self.makes
         if len(model) == 0:
@@ -53,7 +52,7 @@ class DataProcessor():
             fuel = self.fuels
         if len(color) == 0:
             color = self.colors
-        df_graph = self.df[
+        df_filtered = self.df[
             (self.df["year"] >= year[0]) &
             (self.df["year"] <= year[1]) &
             (self.df["make"].isin(make)) &
@@ -61,7 +60,11 @@ class DataProcessor():
             (self.df["transmission"].isin(transmission)) &
             (self.df["fuel"].isin(fuel)) &
             (self.df["color"].isin(color))
-            ]
+            ].copy()
+        return df_filtered
+
+    def box_plot_ov(self, col_x, year, make, model, transmission, fuel, color):
+        df_graph = self.apply_filter(year, make, model, transmission, fuel, color)
         fig = px.box(df_graph.sort_values(col_x), x=col_x, y="price", log_y=True, template="plotly_white")
         # if col_x == "make":
         #     fig.update_layout(width=3000)
@@ -72,32 +75,11 @@ class DataProcessor():
         return fig
 
     def bar_line_chart_ov(self, year, make, model, transmission, fuel, color):
-        if len(make) == 0:
-            make = self.makes
-        if len(model) == 0:
-            model = self.models
-        if len(transmission) == 0:
-            transmission = self.trans
-        if len(fuel) == 0:
-            fuel = self.fuels
-        if len(color) == 0:
-            color = self.colors
-        df_graph = self.df[
-            (self.df["year"] >= year[0]) &
-            (self.df["year"] <= year[1]) &
-            (self.df["make"].isin(make)) &
-            (self.df["model"].isin(model)) &
-            (self.df["transmission"].isin(transmission)) &
-            (self.df["fuel"].isin(fuel)) &
-            (self.df["color"].isin(color))
-            ]
-
+        df_graph = self.apply_filter(year, make, model, transmission, fuel, color)
         df_graph = df_graph.groupby("year").agg(
             {"price": ["mean"], "make": ["count"], "model": [lambda x: x.nunique()]}).reset_index().droplevel(1, axis=1)
-
         fig = px.line(x=df_graph["year"], y=df_graph["price"], color=px.Constant("Average Price"),
                       labels=dict(x="year", y="Average Price"), template="plotly_white")
-
         fig.update_layout(
             yaxis2=dict(
                 title="Vehicle Count",
