@@ -121,8 +121,8 @@ def top_line_filter_q(data_obj):
                 dcc.RangeSlider(
                     min=0,
                     max=1,
-                    step=0.01,
-                    value=[0, 1],
+                    step=0.05,
+                    value=[0.05, 0.95],
                     marks={i: f"{i:.2f}" for i in np.arange(0, 1, 0.1)},
                     id='quantile-range')
             ], style={"width": "20%"})

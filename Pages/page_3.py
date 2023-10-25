@@ -38,10 +38,18 @@ def HypothesisPage(data_obj):
                         options=stats_calc.get_two_ind_tests(),
                         value=stats_calc.get_two_ind_tests()[0],
                         inline=True
-                    )
+                    ),
+                    html.H2("Checking if two selected subsets are Normally Distrubuted"),
+                    html.P(id="norm-dist-hypothesis-1"),
+                    html.P(id="norm-dist-hypothesis-2"),
+                    html.H2("Testing hypothesis:"),
+                    html.Li(id="hypothesis-text"),
+                    html.H2("Results:"),
+                    html.P(id="hypothesis-result")
                 ], style={"width": "50%"}),
                 html.Div([
+                    html.P("Subsets Histogram"),
                     dcc.Graph(id="histogram-graph")
                 ], style={"width": "50%"})
             ], style={"display": "flex"})
-        ], style={'overflowX': 'scroll', 'width': "100%"})
+        ], style={'width': "100%"})

@@ -20,8 +20,23 @@ class StatsCalc():
 
     def check_2array_test(self, test_name, arr_1, arr_2):
         if test_name == self.two_ind_tests[0]:
-            stat, p = mannwhitneyu(arr_1, arr_2)
-            return stat, p
-        if test_name == self.two_ind_tests[1]:
+            hypothesis = [
+                "H0: the means of the samples are equal.",
+                "H1: the means of the samples are unequal."]
             stat, p = ttest_ind(arr_1, arr_2)
-            return stat, p
+            if p > 0.05:
+                hypothesis_result = f"Probably the same mean. Stat={stat}, p_score={p}"
+            else:
+                hypothesis_result = f"Probably NOT the same mean. Stat={stat}, p_score={p}"
+            return hypothesis, hypothesis_result
+
+        if test_name == self.two_ind_tests[1]:
+            stat, p = mannwhitneyu(arr_1, arr_2)
+            hypothesis = [
+                "H0: the distributions of both samples are equal",
+                "H1: the distributions of both samples are not equal."]
+            if p > 0.05:
+                hypothesis_result = f"Probably the same distribution. Stat={stat}, p_score={p}"
+            else:
+                hypothesis_result = f"Probably NOT the same distribution. Stat={stat}, p_score={p}"
+            return hypothesis, hypothesis_result

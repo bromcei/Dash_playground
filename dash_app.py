@@ -2,9 +2,11 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 from Pages.Nav.top_nav import top_nav
 from Services.data_src import DataProcessor
+from Pages.page_1 import DataQualityLayout
 from Pages.page_2 import Overview_layout
 from Pages.page_3 import HypothesisPage
-from Pages.page_4 import page_2_layout
+from Pages.page_4 import ML_layout
+from scipy.stats import normaltest
 
 
 app = Dash(__name__, suppress_callback_exceptions=True)
@@ -13,9 +15,6 @@ app.title = 'CarVertical Homework'
 #Data
 data_obj = DataProcessor()
 
-# Tables and Graphs Parameters
-PAGE_SIZE = 10
-n_days = 90
 
 app.layout = top_nav
 
@@ -23,17 +22,16 @@ app.layout = top_nav
               Input('tabs-styled-with-inline', 'value'))
 def render_content(tab):
     if tab == 'tab-1':
-        return page_2_layout()
+        return DataQualityLayout(data_obj)
 
     if tab == 'tab-2':
         return Overview_layout(data_obj)
-
 
     elif tab == 'tab-3':
         return HypothesisPage(data_obj)
 
     elif tab == 'tab-4':
-        return 0
+        return ML_layout(data_obj)
 
 
 # Page 2 ---------------------------------------------------------------------------------------------------------------
@@ -77,21 +75,29 @@ def first_subset_values(value):
 def second_subset_values(value):
     return data_obj.get_col_unique_values(value)
 
-@app.callback(Output('histogram-graph', 'figure'),
-            [
-                Input("year-range", "value"),
-                Input("make-dropdown", "value"),
-                Input("model-dropdown", "value"),
-                Input("transmission-dropdown", "value"),
-                Input("fuel-dropdown", "value"),
-                Input("color-dropdown", "value"),
-                Input("quantile-range", "value"),
-                Input("categorical-test-dropdown", "value"),
-                Input("first-subset-dropdown", "value"),
-                Input("second-subset-dropdown", "value"),
-             ])
-def hist_chart(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2):
-    return data_obj.hist_plot(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2)
+@app.callback(
+    [
+        Output('histogram-graph', 'figure'),
+        Output('norm-dist-hypothesis-1', 'children'),
+        Output('norm-dist-hypothesis-2', 'children'),
+        Output('hypothesis-text', 'children'),
+        Output('hypothesis-result', 'children'),
+    ],
+    [
+        Input("year-range", "value"),
+        Input("make-dropdown", "value"),
+        Input("model-dropdown", "value"),
+        Input("transmission-dropdown", "value"),
+        Input("fuel-dropdown", "value"),
+        Input("color-dropdown", "value"),
+        Input("quantile-range", "value"),
+        Input("categorical-test-dropdown", "value"),
+        Input("first-subset-dropdown", "value"),
+        Input("second-subset-dropdown", "value"),
+        Input("avalaible-tests", "value")
+     ])
+def hist_chart(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name):
+    return data_obj.hist_plot(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name)
 
 
 

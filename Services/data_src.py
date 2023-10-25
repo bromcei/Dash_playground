@@ -1,7 +1,9 @@
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
+from scipy.stats import normaltest
+from Services.stats_processor import StatsCalc
 import numpy as np
+from dash import html
 import time
 from datetime import date, datetime, timedelta
 import os
@@ -124,17 +126,91 @@ class DataProcessor():
         return fig
 
 
-    def hist_plot(self, year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2):
+    def hist_plot(self, year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name):
         df_filtered = self.apply_filter_with_q(quantile_range[0], quantile_range[1], year, make, model, transmission,
                                                fuel, color)
 
         cat_1_prices = df_filtered[df_filtered[category_name] == category_value_1]["price"].to_numpy()
         cat_2_prices = df_filtered[df_filtered[category_name] == category_value_2]["price"].to_numpy()
 
+        norm_hypothesis_1 = "No Subset selected"
+        norm_hypothesis_2 = "No Subset selected"
+        cat_1_prices_mean = None
+        cat_2_prices_mean = None
+        if len(cat_1_prices)>0:
+            cat_1_prices_mean = cat_1_prices.mean()
+            cat_1_norm_test, cat_1_norm_p = normaltest(cat_1_prices)
+            if cat_1_norm_p > 0.05:
+                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes from norm distribution. p={cat_1_norm_p}"
+            else:
+                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes NOT from norm distribution. p={cat_1_norm_p}"
+
+        if len(cat_2_prices) > 0:
+            cat_2_prices_mean = cat_2_prices.mean()
+            cat_2_norm_test, cat_2_norm_p = normaltest(cat_2_prices)
+            if cat_2_norm_p > 0.05 and len(cat_2_prices) > 0:
+                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes from norm distribution. p={cat_2_norm_p}"
+            else:
+                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes NOT from norm distribution. p={cat_2_norm_p}"
+
+        hypothesis = []
+        hypothesis_result = ""
+        if len(cat_1_prices) > 0 and len(cat_2_prices) > 0:
+            hypothesis, hypothesis_result = StatsCalc().check_2array_test(test_name, cat_1_prices, cat_2_prices)
+
         df_hist = pd.DataFrame(dict(
             series=np.concatenate(([category_value_1] * len(cat_1_prices), [category_value_2] * len(cat_2_prices))),
             data=np.concatenate((cat_1_prices, cat_2_prices))
         ))
-        fig = px.histogram(df_hist, x="data", color="series", barmode="overlay", nbins=20)
-        return fig
+        df_hist.columns = ["Series", "Price"]
+        fig = px.histogram(df_hist, x="Price", color="Series", barmode="overlay", nbins=20, template="plotly_white")
+        if cat_1_prices_mean:
+            fig.add_shape(type='line',
+                          x0=cat_1_prices_mean,
+                          x1=cat_1_prices_mean,
+                          y0=0,
+                          y1=1,
+                          xref='x',
+                          yref='paper',
+                          line=dict(color='blue', width=2, dash='dash'))
+
+
+        # Add the second mean line to the figure
+        if cat_2_prices_mean:
+            fig.add_shape(type='line',
+                          x0=cat_2_prices_mean,
+                          x1=cat_2_prices_mean,
+                          y0=0,
+                          y1=1,
+                          xref='x',
+                          yref='paper',
+                          line=dict(color='red', width=2, dash='dash'))
+
+
+        if cat_1_prices_mean and cat_2_prices_mean:
+            fig.update_layout(annotations=[
+                dict(
+                    x=cat_1_prices_mean,
+                    y=0,
+                    xref='x',
+                    yref='y',
+                    text=f'{category_value_1} price avg.: {cat_1_prices_mean:.2f}',
+                    showarrow=True,
+                    arrowhead=7,
+                    ax=100,
+                    ay=-100
+                ),
+                dict(
+                    x=cat_2_prices_mean,
+                    y=0,
+                    xref='x',
+                    yref='y',
+                    text=f'{category_value_2} price avg.: {cat_2_prices_mean:.2f}',
+                    showarrow=True,
+                    arrowhead=7,
+                    ax=100,
+                    ay=-50
+                )]
+            )
+        return fig, norm_hypothesis_1, norm_hypothesis_2, [html.Li(item) for item in hypothesis], hypothesis_result
 
