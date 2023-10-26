@@ -118,6 +118,7 @@ def top_line_filter_q(data_obj):
             ], style={"width": "20%"}),
             html.Div([
                 html.P("Price Quantile Filter"),
+                html.P(id='quantile-output'),
                 dcc.RangeSlider(
                     min=0,
                     max=1,

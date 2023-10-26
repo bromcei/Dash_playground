@@ -12,7 +12,7 @@ def HypothesisPage(data_obj):
             html.H1('Two Subsamples Hypothesis Testing'),
             html.Div([
                 html.Div([
-                    html.P("Hypothesis Subset"),
+                    html.H2("Hypothesis Subset"),
                     dcc.Dropdown(
                         categorical_test,
                         categorical_test[0],
@@ -39,16 +39,19 @@ def HypothesisPage(data_obj):
                         value=stats_calc.get_two_ind_tests()[0],
                         inline=True
                     ),
-                    html.H2("Checking if two selected subsets are Normally Distrubuted"),
+                    html.H2("Checking if two selected subsets are Normally Distrubuted(D’Agostino and Pearson’s test)"),
                     html.P(id="norm-dist-hypothesis-1"),
                     html.P(id="norm-dist-hypothesis-2"),
                     html.H2("Testing hypothesis:"),
-                    html.Li(id="hypothesis-text"),
+                    html.Li([], id="hypothesis-text", style={'list-style-type': 'none'}),
                     html.H2("Results:"),
                     html.P(id="hypothesis-result")
                 ], style={"width": "50%"}),
                 html.Div([
-                    html.P("Subsets Histogram"),
+                    html.H2("Subsets Histogram"),
+                    html.P("Histogram n bins slicer"),
+                    dcc.Slider(5, 100, 1, id="hist-bins-slider", value=20, marks=None,
+                               tooltip={"placement": "bottom", "always_visible": True}),
                     dcc.Graph(id="histogram-graph")
                 ], style={"width": "50%"})
             ], style={"display": "flex"})

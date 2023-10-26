@@ -93,40 +93,104 @@ class DataProcessor():
         return df_filtered
 
     def box_plot_ov(self, col_x, year, make, model, transmission, fuel, color):
-        df_graph = self.apply_filter(year, make, model, transmission, fuel, color)
-        fig = px.box(df_graph.sort_values(col_x), x=col_x, y="price", log_y=True, template="plotly_white")
+        df_box = self.apply_filter(year, make, model, transmission, fuel, color)
+        fig_box = px.box(df_box.sort_values(col_x), x=col_x, y="price", log_y=True, template="plotly_white")
         # if col_x == "make":
         #     fig.update_layout(width=3000)
         # if col_x == "model":
         #     fig.update_layout(width=12000)
         # else:
         #     fig.update_layout(width=None)
-        return fig
+        return fig_box
 
-    def bar_line_chart_ov(self, year, make, model, transmission, fuel, color):
-        df_graph = self.apply_filter(year, make, model, transmission, fuel, color)
-        df_graph = df_graph.groupby("year").agg(
-            {"price": ["mean"], "make": ["count"], "model": [lambda x: x.nunique()]}).reset_index().droplevel(1, axis=1)
+    def bar_line_chart_ov(self, year, make, model, transmission, fuel, color, x_boxaxis):
+        df = self.apply_filter(year, make, model, transmission, fuel, color)
+        fig_box = px.box(df.sort_values(x_boxaxis), x=x_boxaxis, y="price", log_y=True, template="plotly_white")
+        df_graph = df.groupby("year").agg(
+            {"price": ["mean"], "make": ["count"], "model": [lambda x: x.nunique()]}).reset_index().droplevel(1, axis=1).copy()
         fig = px.line(x=df_graph["year"], y=df_graph["price"], color=px.Constant("Average Price"),
-                      labels=dict(x="year", y="Average Price"), template="plotly_white")
+                      labels=dict(x="year", y="Average Price"), template="plotly_white", height=350)
         fig.update_layout(
             yaxis2=dict(
                 title="Vehicle Count",
                 # overlaying='y',
                 side='right'
             ),
-            yaxis1 = dict(
+            yaxis1=dict(
                 title="Average Price",
                 overlaying='y2',
                 side='left'
-            )
+            ),
+            # legend_x=0, legend_y=0
         )
         fig.add_bar(x=df_graph["year"], y=df_graph["make"], name="Vehicle Count", yaxis="y2")
-        # fig.update_layout(traceorder="reversed")
-        return fig
 
+        df_make_table = df.groupby('make').agg({
+            "model": ['nunique', "count"],
+            'price': ['mean', 'std', 'var', "sum"]
+        }).reset_index().copy()
+        df_make_table.columns = list(map('_'.join, df_make_table.columns.values))
+        total_market = np.sum(df_make_table["price_sum"])
+        if total_market > 0:
+            df_make_table["market_share"] = df_make_table["price_sum"] * 100 / total_market
+        else:
+            df_make_table["market_share"] = 0
 
-    def hist_plot(self, year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name):
+        df_make_table.rename(columns={
+            'make_': "Make",
+            'model_nunique': "Unique Models",
+            'model_count': "Model Count",
+            'price_mean': "Average Price",
+            'price_std': "Standard Deviation",
+            'price_var': "Variance",
+            'price_sum': "Total Market",
+            'market_share': 'Market Share, %'}, inplace=True)
+
+        df_model_table = df.groupby('model').agg({
+            "model": ["count"],
+            'price': ['mean', 'std', 'var', "sum"]
+        }).reset_index().copy()
+        df_model_table.columns = list(map('_'.join, df_model_table.columns.values))
+        total_market = np.sum(df_model_table["price_sum"])
+        if total_market > 0:
+            df_model_table["market_share"] = df_model_table["price_sum"] * 100 / total_market
+        else:
+            df_model_table["market_share"] = 0
+
+        df_model_table.rename(columns={
+            'model_': "Model",
+            'model_nunique': "Number of Unique Models",
+            'model_count': "Model Count",
+            'price_mean': "Average Price",
+            'price_std': "Standard Deviation",
+            'price_var': "Variance",
+            'price_sum': "Total Market",
+            'market_share': 'Market Share, %'}, inplace=True)
+        min_year = int(np.min(df["year"]))
+        max_year = int(np.max(df["year"]))
+        totals_table = [
+            ["Total Brands", df["make"].unique().shape[0]],
+            ["Total Models", df["model"].unique().shape[0]],
+            ["Total Vehicles", df.shape[0]],
+            ["Vehicle Manufacture Year Range", f"{min_year}-{max_year}"],
+            ["Min Price", np.min(df["price"])],
+            ["Max Price", np.max(df["price"])],
+            ["Average Price", np.mean(df["price"])],
+            ["Standard Dev.", np.std(df["price"])],
+            ["Variance", np.var(df["price"])]
+        ]
+        df_totals = pd.DataFrame(totals_table)
+        df_totals.columns = ["", "Value"]
+        return fig, \
+               fig_box, \
+               df_make_table.round(decimals=2).to_dict('records'), \
+               [{'name': col, 'id': col} for col in df_make_table.columns], \
+                df_model_table.round(decimals=2).to_dict('records'), \
+                [{'name': col, 'id': col} for col in df_model_table.columns], \
+                df_totals.round(decimals=2).to_dict('records'),\
+                [{'name': col, 'id': col} for col in df_totals.columns]
+
+    def hist_plot(self, year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name, bin_size):
         df_filtered = self.apply_filter_with_q(quantile_range[0], quantile_range[1], year, make, model, transmission,
                                                fuel, color)
 
@@ -141,29 +205,29 @@ class DataProcessor():
             cat_1_prices_mean = cat_1_prices.mean()
             cat_1_norm_test, cat_1_norm_p = normaltest(cat_1_prices)
             if cat_1_norm_p > 0.05:
-                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes from norm distribution. p={cat_1_norm_p}"
+                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes from norm distribution. p={cat_1_norm_p}. Subset price mean {cat_1_prices_mean:.2f}"
             else:
-                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes NOT from norm distribution. p={cat_1_norm_p}"
+                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes NOT from norm distribution. p={cat_1_norm_p}. Subset price mean {cat_1_prices_mean:.2f}"
 
         if len(cat_2_prices) > 0:
             cat_2_prices_mean = cat_2_prices.mean()
             cat_2_norm_test, cat_2_norm_p = normaltest(cat_2_prices)
             if cat_2_norm_p > 0.05 and len(cat_2_prices) > 0:
-                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes from norm distribution. p={cat_2_norm_p}"
+                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes from norm distribution. p={cat_2_norm_p}. Subset price mean {cat_2_prices_mean:.2f}"
             else:
-                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes NOT from norm distribution. p={cat_2_norm_p}"
+                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes NOT from norm distribution. p={cat_2_norm_p}. Subset price mean {cat_2_prices_mean:.2f}"
 
-        hypothesis = []
+        hypothesis = StatsCalc().get_hypothesis_by_test_name(test_name)
         hypothesis_result = ""
         if len(cat_1_prices) > 0 and len(cat_2_prices) > 0:
-            hypothesis, hypothesis_result = StatsCalc().check_2array_test(test_name, cat_1_prices, cat_2_prices)
+            hypothesis_result = StatsCalc().check_2array_test(test_name, cat_1_prices, cat_2_prices)
 
         df_hist = pd.DataFrame(dict(
             series=np.concatenate(([category_value_1] * len(cat_1_prices), [category_value_2] * len(cat_2_prices))),
             data=np.concatenate((cat_1_prices, cat_2_prices))
         ))
         df_hist.columns = ["Series", "Price"]
-        fig = px.histogram(df_hist, x="Price", color="Series", barmode="overlay", nbins=20, template="plotly_white")
+        fig = px.histogram(df_hist, x="Price", color="Series", barmode="overlay", nbins=bin_size, template="plotly_white")
         if cat_1_prices_mean:
             fig.add_shape(type='line',
                           x0=cat_1_prices_mean,
@@ -212,5 +276,5 @@ class DataProcessor():
                     ay=-50
                 )]
             )
-        return fig, norm_hypothesis_1, norm_hypothesis_2, [html.Li(item) for item in hypothesis], hypothesis_result
+        return fig, norm_hypothesis_1, norm_hypothesis_2, [html.Li(item) for item in hypothesis if item], hypothesis_result
 
