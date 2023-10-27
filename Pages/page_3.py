@@ -50,7 +50,7 @@ def HypothesisPage(data_obj):
                 html.Div([
                     html.H2("Subsets Histogram"),
                     html.P("Histogram n bins slicer"),
-                    dcc.Slider(5, 100, 1, id="hist-bins-slider", value=20, marks=None,
+                    dcc.Slider(5, 100, 5, id="hist-bins-slider", value=20, marks=None,
                                tooltip={"placement": "bottom", "always_visible": True}),
                     dcc.Graph(id="histogram-graph")
                 ], style={"width": "50%"})
