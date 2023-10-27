@@ -135,7 +135,7 @@ class DataProcessor():
             df_make_table["market_share"] = df_make_table["price_sum"] * 100 / total_market
         else:
             df_make_table["market_share"] = 0
-
+        df_make_table.sort_values("market_share", ascending=False, inplace=True)
         df_make_table.rename(columns={
             'make_': "Make",
             'model_nunique': "Uniq. Models",
@@ -156,7 +156,7 @@ class DataProcessor():
             df_model_table["market_share"] = df_model_table["price_sum"] * 100 / total_market
         else:
             df_model_table["market_share"] = 0
-
+        df_model_table.sort_values("market_share", ascending=False, inplace=True)
         df_model_table.rename(columns={
             'model_': "Model",
             'model_nunique': "Uniq. Models",
