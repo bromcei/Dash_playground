@@ -109,7 +109,7 @@ class DataProcessor():
         df_graph = df.groupby("year").agg(
             {"price": ["mean"], "make": ["count"], "model": [lambda x: x.nunique()]}).reset_index().droplevel(1, axis=1).copy()
         fig = px.line(x=df_graph["year"], y=df_graph["price"], color=px.Constant("Average Price"),
-                      labels=dict(x="year", y="Average Price"), template="plotly_white", height=350)
+                      labels=dict(x="year", y="Average Price"), template="plotly_white", height=375)
         fig.update_layout(
             yaxis2=dict(
                 title="Vehicle Count",
@@ -138,13 +138,13 @@ class DataProcessor():
 
         df_make_table.rename(columns={
             'make_': "Make",
-            'model_nunique': "Unique Models",
+            'model_nunique': "Uniq. Models",
             'model_count': "Model Count",
             'price_mean': "Average Price",
-            'price_std': "Standard Deviation",
-            'price_var': "Variance",
-            'price_sum': "Total Market",
-            'market_share': 'Market Share, %'}, inplace=True)
+            'price_std': "St. Dev.",
+            'price_var': "Var.",
+            'price_sum': "Tot. Market",
+            'market_share': 'MS, %'}, inplace=True)
 
         df_model_table = df.groupby('model').agg({
             "model": ["count"],
@@ -159,28 +159,30 @@ class DataProcessor():
 
         df_model_table.rename(columns={
             'model_': "Model",
-            'model_nunique': "Number of Unique Models",
+            'model_nunique': "Uniq. Models",
             'model_count': "Model Count",
-            'price_mean': "Average Price",
-            'price_std': "Standard Deviation",
-            'price_var': "Variance",
-            'price_sum': "Total Market",
-            'market_share': 'Market Share, %'}, inplace=True)
+            'price_mean': "Avg Price",
+            'price_std': "St. Dev",
+            'price_var': "Var.",
+            'price_sum': "Tot. Market",
+            'market_share': 'MS, %'}, inplace=True)
         min_year = int(np.min(df["year"]))
         max_year = int(np.max(df["year"]))
-        totals_table = [
-            ["Total Brands", df["make"].unique().shape[0]],
-            ["Total Models", df["model"].unique().shape[0]],
-            ["Total Vehicles", df.shape[0]],
-            ["Vehicle Manufacture Year Range", f"{min_year}-{max_year}"],
-            ["Min Price", np.min(df["price"])],
-            ["Max Price", np.max(df["price"])],
-            ["Average Price", np.mean(df["price"])],
-            ["Standard Dev.", np.std(df["price"])],
-            ["Variance", np.var(df["price"])]
-        ]
-        df_totals = pd.DataFrame(totals_table)
-        df_totals.columns = ["", "Value"]
+        totals_table = {
+            "Total Brands": df["make"].unique().shape[0],
+            "Total Models": df["model"].unique().shape[0],
+            "Total Vehicles": df.shape[0],
+            "Vehicle Manufacture Year Range": f"{min_year}-{max_year}",
+            "Min Price": np.min(df["price"]),
+            "Max Price": np.max(df["price"]),
+            "Average Price": np.mean(df["price"]),
+            "Standard Dev.": np.std(df["price"]),
+            "Variance": np.var(df["price"])
+        }
+
+
+        df_totals = pd.DataFrame(totals_table, index=[0])
+
         return fig, \
                fig_box, \
                df_make_table.round(decimals=2).to_dict('records'), \

@@ -5,17 +5,13 @@ def Overview_layout(data_obj):
     return html.Div([
         top_line_filter(data_obj),
         html.H2('Average Vehicle Price and Vehicle Count over the Years '),
-        html.Div([
             html.Div([
                 dash_table.DataTable(
                     id="basic-info-table")
-            ], style={"width": "20%"}),
+            ]),
             html.Div([
                 dcc.Graph(id="bar-line-graph")
-            ], style={"width": "80%"})
-
-        ], style={"display": "flex"}),
-
+            ]),
         html.H2("Vehicle Brands and Models Market Analysis"),
         html.Div([
             html.Div([
