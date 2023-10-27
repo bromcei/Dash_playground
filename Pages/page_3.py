@@ -19,7 +19,7 @@ def HypothesisPage(data_obj):
                         multi=False,
                         id='categorical-test-dropdown'),
                     html.Div([
-                        html.P("Please Select Two Comparable Sets"),
+                        html.P("Select Two Comparable Sets"),
                         html.Div([
                             dcc.Dropdown(
                                 multi=False,
@@ -32,16 +32,17 @@ def HypothesisPage(data_obj):
                         ], style={"width": "50%"})
 
                     ],  style={"display":"flex"}),
-                    html.P("Test Names:"),
+
+                    html.H2("Checking if two selected subsets are Normally Distrubuted(D’Agostino and Pearson’s test)"),
+                    html.P(id="norm-dist-hypothesis-1"),
+                    html.P(id="norm-dist-hypothesis-2"),
+                    html.H2("Test Names:"),
                     dcc.RadioItems(
                         id='avalaible-tests',
                         options=stats_calc.get_two_ind_tests(),
                         value=stats_calc.get_two_ind_tests()[0],
                         inline=True
                     ),
-                    html.H2("Checking if two selected subsets are Normally Distrubuted(D’Agostino and Pearson’s test)"),
-                    html.P(id="norm-dist-hypothesis-1"),
-                    html.P(id="norm-dist-hypothesis-2"),
                     html.H2("Testing hypothesis:"),
                     html.Li([], id="hypothesis-text", style={'list-style-type': 'none'}),
                     html.H2("Results:"),
