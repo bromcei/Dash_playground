@@ -211,17 +211,17 @@ class DataProcessor():
             cat_1_prices_mean = cat_1_prices.mean()
             cat_1_norm_test, cat_1_norm_p = normaltest(cat_1_prices)
             if cat_1_norm_p > 0.05:
-                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes from norm distribution. p={cat_1_norm_p}. Subset price mean {cat_1_prices_mean:.2f}"
+                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes from norm distribution. p={cat_1_norm_p}. Subset price mean {cat_1_prices_mean:.2f}, subset length {cat_1_prices.shape[0]}"
             else:
-                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes NOT from norm distribution. p={cat_1_norm_p}. Subset price mean {cat_1_prices_mean:.2f}"
+                norm_hypothesis_1 = f"Subset {category_name}={category_value_1} probably comes NOT from norm distribution. p={cat_1_norm_p}. Subset price mean {cat_1_prices_mean:.2f}, subset length {cat_1_prices.shape[0]}"
 
         if len(cat_2_prices) > 0:
             cat_2_prices_mean = cat_2_prices.mean()
             cat_2_norm_test, cat_2_norm_p = normaltest(cat_2_prices)
             if cat_2_norm_p > 0.05 and len(cat_2_prices) > 0:
-                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes from norm distribution. p={cat_2_norm_p}. Subset price mean {cat_2_prices_mean:.2f}"
+                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes from norm distribution. p={cat_2_norm_p}. Subset price mean {cat_2_prices_mean:.2f}, subset length {cat_2_prices.shape[0]}"
             else:
-                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes NOT from norm distribution. p={cat_2_norm_p}. Subset price mean {cat_2_prices_mean:.2f}"
+                norm_hypothesis_2 = f"Subset {category_name}={category_value_2} probably comes NOT from norm distribution. p={cat_2_norm_p}. Subset price mean {cat_2_prices_mean:.2f}, subset length {cat_2_prices.shape[0]}"
 
         hypothesis = StatsCalc().get_hypothesis_by_test_name(test_name)
         hypothesis_result = ""
