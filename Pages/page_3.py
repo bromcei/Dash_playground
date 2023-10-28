@@ -53,7 +53,7 @@ def HypothesisPage(data_obj):
                     html.P("Histogram n bins slicer"),
                     dcc.Slider(5, 100, 5, id="hist-bins-slider", value=20, marks=None,
                                tooltip={"placement": "bottom", "always_visible": True}),
-                    dcc.Checklist(["log yaxis"], id="his-log-axis"),
+                    dcc.Checklist(["logarithmic y axis"], id="his-log-axis"),
                     dcc.Graph(id="histogram-graph")
                 ], style={"width": "50%"})
             ], style={"display": "flex"})
