@@ -199,6 +199,10 @@ class DataProcessor():
         cat_1_prices = df_filtered[df_filtered[category_name] == category_value_1]["price"].to_numpy()
         cat_2_prices = df_filtered[df_filtered[category_name] == category_value_2]["price"].to_numpy()
 
+        if len(cat_2_prices) == 0 and category_value_2 is None:
+            cat_2_prices = df_filtered[df_filtered[category_name] != category_value_1]["price"].to_numpy()
+            category_value_2 = f"Population except {category_value_1}" if category_value_1 is not None else "Population"
+
         norm_hypothesis_1 = "No Subset selected"
         norm_hypothesis_2 = "No Subset selected"
         cat_1_prices_mean = None

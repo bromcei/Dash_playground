@@ -118,6 +118,6 @@ def hist_chart(year, make, model, transmission, fuel, color, quantile_range, cat
     return data_obj.hist_plot(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name, bin_size)
 
 
-#
+
 # if __name__ == '__main__':
 #     app.run_server(host='0.0.0.0', port=8050, debug=True)
