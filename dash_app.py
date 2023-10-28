@@ -113,9 +113,10 @@ def update_output(selected_range):
         Input("second-subset-dropdown", "value"),
         Input("avalaible-tests", "value"),
         Input("hist-bins-slider", "value"),
+        Input("his-log-axis", "value")
      ])
-def hist_chart(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name, bin_size):
-    return data_obj.hist_plot(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name, bin_size)
+def hist_chart(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name, bin_size, hist_log_yaxis):
+    return data_obj.hist_plot(year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name, bin_size, hist_log_yaxis)
 
 
 

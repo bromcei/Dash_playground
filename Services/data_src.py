@@ -192,7 +192,7 @@ class DataProcessor():
                 df_totals.round(decimals=2).to_dict('records'),\
                 [{'name': col, 'id': col} for col in df_totals.columns]
 
-    def hist_plot(self, year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name, bin_size):
+    def hist_plot(self, year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name, bin_size, hist_log_yaxis):
         df_filtered = self.apply_filter_with_q(quantile_range[0], quantile_range[1], year, make, model, transmission,
                                                fuel, color)
 
@@ -233,7 +233,11 @@ class DataProcessor():
             data=np.concatenate((cat_1_prices, cat_2_prices))
         ))
         df_hist.columns = ["Series", "Price"]
-        fig = px.histogram(df_hist, x="Price", color="Series", barmode="overlay", nbins=bin_size, template="plotly_white")
+
+        hist_yaxis_log = False
+        if hist_log_yaxis:
+            hist_yaxis_log = True
+        fig = px.histogram(df_hist, x="Price", color="Series", barmode="overlay", nbins=bin_size, log_y=hist_yaxis_log, template="plotly_white")
         if cat_1_prices_mean:
             fig.add_shape(type='line',
                           x0=cat_1_prices_mean,
