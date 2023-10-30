@@ -140,7 +140,7 @@ class DataProcessor():
             df_make_table["market_share"] = 0
         df_make_table.sort_values("market_share", ascending=False, inplace=True)
         df_make_table.rename(columns={
-            x_boxaxis + "_": "Make",
+            x_boxaxis + "_": x_boxaxis,
             'model_nunique': "Uniq. Models",
             'year_count': "Vehicle Count",
             'price_min': "Min Price",
