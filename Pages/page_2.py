@@ -6,11 +6,18 @@ def Overview_layout(data_obj):
         top_line_filter(data_obj),
         html.H2('Average Vehicle Price and Vehicle Count over the Years '),
             html.Div([
-                dash_table.DataTable(
-                    id="basic-info-table")
+                dcc.Loading(
+                    id='loading-3',
+                    type='circle',
+                    children=[dash_table.DataTable(id="basic-info-table")])
             ]),
             html.Div([
-                dcc.Graph(id="bar-line-graph")
+                dcc.Loading(
+                    id='loading-3',
+                    type='circle',
+                    children=[
+                        dcc.Graph(id="bar-line-graph")
+                        ])
             ]),
         html.H2("Vehicle Market Analysis by Selected Feature"),
         dcc.RadioItems(
@@ -21,14 +28,19 @@ def Overview_layout(data_obj):
         ),
         html.Div([
             html.Div([
-                dash_table.DataTable(
-                    id='make-table',
-                    filter_action="native",
-                    sort_action="native",
-                    sort_mode='multi',
-                    page_current=0,
-                    page_size=10
-                )
+                dcc.Loading(
+                    id='loading-3',
+                    type='circle',
+                    children=[
+                        dash_table.DataTable(
+                            id='make-table',
+                            filter_action="native",
+                            sort_action="native",
+                            sort_mode='multi',
+                            page_current=0,
+                            page_size=10
+                        )
+                        ])
             ], style={"width": "100%", 'overflowX': 'scroll'}),
         ], style={"display": "flex"})
         # html.H2('Box Plots by Selected Category'),

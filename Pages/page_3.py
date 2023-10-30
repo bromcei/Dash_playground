@@ -54,7 +54,12 @@ def HypothesisPage(data_obj):
                     dcc.Slider(5, 100, 5, id="hist-bins-slider", value=20, marks=None,
                                tooltip={"placement": "bottom", "always_visible": True}),
                     dcc.Checklist(["logarithmic y axis"], id="his-log-axis"),
-                    dcc.Graph(id="histogram-graph")
+                    dcc.Loading(
+                        id='loading-3',
+                        type='circle',
+                        children=[
+                            dcc.Graph(id="histogram-graph")
+                            ])
                 ], style={"width": "50%"})
             ], style={"display": "flex"})
         ], style={'width': "100%"})
