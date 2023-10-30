@@ -12,7 +12,13 @@ def Overview_layout(data_obj):
             html.Div([
                 dcc.Graph(id="bar-line-graph")
             ]),
-        html.H2("Vehicle Brands and Models Market Analysis"),
+        html.H2("Vehicle Market Analysis by Selected Feature"),
+        dcc.RadioItems(
+            id='x-axis',
+            options=data_obj.get_columns(exlude=["price"]),
+            value=data_obj.get_columns(exlude=["price"])[1],
+            inline=True
+        ),
         html.Div([
             html.Div([
                 dash_table.DataTable(
@@ -23,26 +29,9 @@ def Overview_layout(data_obj):
                     page_current=0,
                     page_size=10
                 )
-            ], style={"width": "60%"}),
-            html.Div([
-                dash_table.DataTable(
-                    id='model-table',
-                    filter_action="native",
-                    sort_action="native",
-                    sort_mode='multi',
-                    page_current=0,
-                    page_size=10
-                )
-            ], style={"width": "40%", "padding-lef": "20px"}),
+            ], style={"width": "100%", 'overflowX': 'scroll'}),
+        ], style={"display": "flex"})
+        # html.H2('Box Plots by Selected Category'),
+        # dcc.Graph(id="box-graph", style={"width": "100%", 'overflowX': 'scroll'}),
 
-        ], style={"display": "flex"}),
-        html.H2('Box Plots by Selected Category'),
-        dcc.RadioItems(
-            id='x-axis',
-            options=data_obj.get_columns(exlude=["price", "year"]),
-            value=data_obj.get_columns(exlude=["price", "year"])[-2],
-            inline=True
-        ),
-        dcc.Graph(id="box-graph"),
-
-    ], style={'overflowX': 'scroll', 'width': "100%"})
+    ], style={'width': "100%"})
