@@ -20,12 +20,24 @@ def Overview_layout(data_obj):
                         ])
             ]),
         html.H2("Vehicle Market Analysis by Selected Feature"),
-        dcc.RadioItems(
-            id='x-axis',
-            options=data_obj.get_columns(exlude=["price"]),
-            value=data_obj.get_columns(exlude=["price"])[1],
-            inline=True
-        ),
+        html.Div([
+            html.Div([
+                html.P("Select Feature"),
+                dcc.RadioItems(
+                    id='x-axis',
+                    options=data_obj.get_columns(exlude=["price", "year"]),
+                    value=data_obj.get_columns(exlude=["price", "year"])[0],
+                    inline=True
+                )
+            ], style={"width": "25%"}),
+            html.Div([
+                html.P("N Comparission Year"),
+                dcc.Slider(1, 30, 1, id="year-comp-slider", value=1, marks=None,
+                           tooltip={"placement": "bottom", "always_visible": True})
+            ], style={"width": "25%"}),
+
+        ], style={"display":"flex"}),
+
         html.Div([
             html.Div([
                 dcc.Loading(

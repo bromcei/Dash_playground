@@ -51,10 +51,12 @@ def render_content(tab):
                 Input("transmission-dropdown", "value"),
                 Input("fuel-dropdown", "value"),
                 Input("color-dropdown", "value"),
-                Input("x-axis", "value")
+                Input("x-axis", "value"),
+                Input("year-comp-slider", "value")
+
              ])
-def line_bar_chart(year, make, model, transmission, fuel, color, x_boxaxis):
-    return data_obj.bar_line_chart_ov(year, make, model, transmission, fuel, color, x_boxaxis)
+def line_bar_chart(year, make, model, transmission, fuel, color, x_boxaxis, n_year):
+    return data_obj.bar_line_chart_ov(year, make, model, transmission, fuel, color, x_boxaxis, n_year)
 
 # @app.callback(Output('box-graph', 'figure'),
 #             [
@@ -141,5 +143,5 @@ def corr_plots(year, make, model, transmission, fuel, color, quantile_range, sel
 
 
 
-if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8050, debug=True)
+# if __name__ == '__main__':
+#     app.run_server(host='0.0.0.0', port=8050, debug=True)

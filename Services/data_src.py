@@ -106,7 +106,7 @@ class DataProcessor():
         #     fig.update_layout(width=None)
         return fig_box
 
-    def bar_line_chart_ov(self, year, make, model, transmission, fuel, color, x_boxaxis):
+    def bar_line_chart_ov(self, year, make, model, transmission, fuel, color, x_boxaxis, n_year):
         df = self.apply_filter(year, make, model, transmission, fuel, color)
         # fig_box = px.box(df.sort_values(x_boxaxis), x=x_boxaxis, y="price", log_y=True, template="plotly_white")
         df_graph = df.groupby("year").agg(
@@ -142,7 +142,7 @@ class DataProcessor():
             df_make_table["market_share"] = 0
         df_make_table.sort_values("market_share", ascending=False, inplace=True)
         df_make_table.rename(columns={
-            x_boxaxis + "_": x_boxaxis,
+            x_boxaxis + "_": x_boxaxis.capitalize(),
             'model_nunique': "Uniq. Models",
             'year_count': "Vehicle Count",
             'price_min': "Min Price",
@@ -153,8 +153,33 @@ class DataProcessor():
             'price_var': "Var. Price",
             'price_sum': "Tot. Market",
             'market_share': 'MS, %'}, inplace=True)
+
         min_year = int(np.min(df["year"]))
         max_year = int(np.max(df["year"]))
+
+        df_max_year_avg_prices = df[df["year"] == max_year].groupby(x_boxaxis).agg(
+            {'price': ['mean']}).reset_index().copy()
+        df_max_year_avg_prices.columns = list(map('_'.join, df_max_year_avg_prices.columns.values))
+
+        df_comp_year_avg_prices = df[df["year"] == max_year - n_year].groupby(x_boxaxis).agg(
+            {'price': ['mean']}).reset_index().copy()
+        df_comp_year_avg_prices.columns = list(map('_'.join, df_comp_year_avg_prices.columns.values))
+
+        df_comp_year_prices = df_max_year_avg_prices.merge(df_comp_year_avg_prices,
+                                                           left_on=df_max_year_avg_prices.columns[0],
+                                                           right_on=df_comp_year_avg_prices.columns[0], how='left')
+        df_comp_year_prices["Change, %"] = (df_comp_year_prices['price_mean_y'] - df_comp_year_prices[
+            'price_mean_x']) * 100 / df_comp_year_prices['price_mean_y']
+
+        df_comp_year_prices.rename(columns={
+                "price_mean_x": f"Price Mean {max_year}",
+                "price_mean_y": f"Price Mean {max_year - n_year}"}, inplace=True)
+
+        df_make_table = df_make_table.merge(df_comp_year_prices, left_on= df_make_table.columns[0],
+                                            right_on=df_comp_year_prices.columns[0])
+
+        df_make_table.drop(x_boxaxis + "_", axis=1, inplace=True)
+
         totals_table = {
             "Total Brands": df["make"].unique().shape[0],
             "Total Models": df["model"].unique().shape[0],
@@ -167,10 +192,9 @@ class DataProcessor():
             "Variance": np.var(df["price"])
         }
 
-
-
-
         df_totals = pd.DataFrame(totals_table, index=[0])
+
+
 
         return fig, \
                df_make_table.round(decimals=2).to_dict('records'), \
@@ -181,7 +205,6 @@ class DataProcessor():
     def hist_plot(self, year, make, model, transmission, fuel, color, quantile_range, category_name, category_value_1, category_value_2, test_name, bin_size, hist_log_yaxis):
         df_filtered = self.apply_filter_with_q(quantile_range[0], quantile_range[1], year, make, model, transmission,
                                                fuel, color)
-
         cat_1_prices = df_filtered[df_filtered[category_name] == category_value_1]["price"].to_numpy()
         cat_2_prices = df_filtered[df_filtered[category_name] == category_value_2]["price"].to_numpy()
 
