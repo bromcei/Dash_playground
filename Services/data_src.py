@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.express as px
 from scipy.stats import normaltest
 from Services.stats_processor import StatsCalc
+from dython import nominal
 import numpy as np
 from dash import html
 import time
@@ -133,6 +134,7 @@ class DataProcessor():
             'price': ['min', 'max', 'median', 'mean', 'std', 'var', "sum"]
         }).reset_index().copy()
         df_make_table.columns = list(map('_'.join, df_make_table.columns.values))
+
         total_market = np.sum(df_make_table["price_sum"])
         if total_market > 0:
             df_make_table["market_share"] = df_make_table["price_sum"] * 100 / total_market
@@ -166,11 +168,13 @@ class DataProcessor():
         }
 
 
+
+
         df_totals = pd.DataFrame(totals_table, index=[0])
 
         return fig, \
                df_make_table.round(decimals=2).to_dict('records'), \
-               [{'name': col, 'id': col} for col in df_make_table.columns], \
+               [{'name': col, 'id': col, "hideable": True} for col in df_make_table.columns], \
                 df_totals.round(decimals=2).to_dict('records'),\
                 [{'name': col, 'id': col} for col in df_totals.columns]
 
@@ -270,3 +274,20 @@ class DataProcessor():
             )
         return fig, norm_hypothesis_1, norm_hypothesis_2, [html.Li(item) for item in hypothesis if item], hypothesis_result
 
+    def correlation_analysis(self, year, make, model, transmission, fuel, color, quantile_range, selected_feature):
+        df_filtered = self.apply_filter_with_q(quantile_range[0], quantile_range[1], year, make, model,
+                                                   transmission,
+                                                   fuel, color)
+        corr_matrix = nominal.associations(df_filtered, nominal_columns=['make', 'model', 'transmission', 'color', 'fuel'],
+                                           numerical_columns=['year', 'price'], mark_columns=True, plot=False,
+                                           nom_nom_assoc='cramer')
+
+        corr_fig = px.imshow(corr_matrix["corr"].round(2), text_auto=True)
+
+        num_cats = ["year", "price"]
+        num_cats.append(selected_feature)
+        df_corr = pd.get_dummies(df_filtered[num_cats])
+        df_corr = df_corr.corr(method='pearson').sort_values("price", ascending=False)
+
+        fig_feature_corr = px.imshow(df_corr.round(2).iloc[:10, :2], text_auto=True)
+        return corr_fig, fig_feature_corr

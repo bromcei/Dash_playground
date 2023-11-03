@@ -1,11 +1,13 @@
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
+import plotly.express as px
+import plotly.graph_objects as go
 from Pages.Nav.top_nav import top_nav
 from Services.data_src import DataProcessor
 from Pages.page_1 import DataQualityLayout
 from Pages.page_2 import Overview_layout
 from Pages.page_3 import HypothesisPage
-from Pages.page_4 import ML_layout
+from Pages.page_4 import DataCorrelation
 from plotly.validator_cache import ValidatorCache
 
 app = Dash(__name__, suppress_callback_exceptions=True)
@@ -27,10 +29,10 @@ def render_content(tab):
         return Overview_layout(data_obj)
 
     elif tab == 'tab-3':
-        return HypothesisPage(data_obj)
+        return DataCorrelation(data_obj)
 
     elif tab == 'tab-4':
-        return ML_layout(data_obj)
+        return HypothesisPage(data_obj)
 
 
 # Page 2 ---------------------------------------------------------------------------------------------------------------
@@ -118,5 +120,26 @@ def hist_chart(year, make, model, transmission, fuel, color, quantile_range, cat
 
 
 
-# if __name__ == '__main__':
-#     app.run_server(host='0.0.0.0', port=8050, debug=True)
+@app.callback(
+        [
+            Output('cramer-corr-matrix', 'figure'),
+            Output('feature-corr-matrix', 'figure')
+         ],
+    [
+        Input("year-range", "value"),
+        Input("make-dropdown", "value"),
+        Input("model-dropdown", "value"),
+        Input("transmission-dropdown", "value"),
+        Input("fuel-dropdown", "value"),
+        Input("color-dropdown", "value"),
+        Input("quantile-range", "value"),
+        Input("x-axis", "value")
+     ])
+def corr_plots(year, make, model, transmission, fuel, color, quantile_range, selected_feature):
+    corr_matrix = data_obj.correlation_analysis(year, make, model, transmission, fuel, color, quantile_range, selected_feature)
+    return corr_matrix
+
+
+
+if __name__ == '__main__':
+    app.run_server(host='0.0.0.0', port=8050, debug=True)
